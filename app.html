@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AXIS TOOL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://miro.com/app/static/sdk/v2/miro.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand">AXIS <span>TOOL</span></div>
+      <button class="lang" id="lang" title="שפת התוויות על הלוח">תוויות: עברית</button>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="mark" role="tab">סימון</button>
+      <button class="tab" data-tab="questions" role="tab">שאלות מנחות</button>
+      <button class="tab" data-tab="where" role="tab">איפה אני?</button>
+    </nav>
+
+    <div class="status" id="status">בחרו פריטים על הלוח</div>
+
+    <!-- סימון -->
+    <section class="pane active" id="pane-mark">
+      <p class="hint">בחרו על הלוח תמונה, פתק, סקיצה או כמה פריטים יחד, ולחצו על הסוג. הפריטים לא זזים: הם מקבלים משטח צבעוני ותווית.</p>
+      <div class="types">
+        <button class="type" data-type="start"><i></i>נקודת מוצא</button>
+        <button class="type" data-type="question"><i></i>שאלה</button>
+        <button class="type" data-type="content"><i></i>תוכן</button>
+        <button class="type" data-type="insight"><i></i>תובנה</button>
+      </div>
+      <p class="hint small">כבר מסומן? לחיצה על סוג אחר מחליפה את הסוג.</p>
+      <div class="row">
+        <button class="secondary" id="connect" disabled>חיבור בחץ</button>
+        <button class="secondary" id="unmark" disabled>הסרת סימון</button>
+      </div>
+    </section>
+
+    <!-- שאלות מנחות -->
+    <section class="pane" id="pane-questions">
+      <p class="hint" id="q-hint">לחיצה על שאלה יוצרת כרטיס שאלה במרכז המסך.</p>
+      <form class="own" id="own-form">
+        <input id="own-q" type="text" placeholder="או כתבו שאלה משלכם…" />
+        <button type="submit" class="primary">הוספה</button>
+      </form>
+      <div id="categories"></div>
+    </section>
+
+    <!-- איפה אני -->
+    <section class="pane" id="pane-where">
+      <button class="primary wide" id="refresh">בדיקת מצב הלוח</button>
+      <div id="report"></div>
+    </section>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
