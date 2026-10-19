@@ -34,11 +34,42 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 }
 
-async function safeGetMeta(item, key) {
-  try { return await item.getMetadata(key); } catch { return undefined; }
+// מידע על פריטים נשמר בשני מקומות: על הפריט עצמו (metadata),
+// וגם ברשימת גיבוי ברמת הלוח (appData) – כי בחלק מסוגי הפריטים
+// (למשל פתקים ותמונות) Miro לא תמיד שומרת metadata.
+const REG_KEY = "axisReg";
+let regCache = null;
+let regTime = 0;
+
+async function loadReg() {
+  if (regCache && Date.now() - regTime < 800) return regCache;
+  try { regCache = (await miro.board.getAppData(REG_KEY)) || {}; } catch { regCache = {}; }
+  regTime = Date.now();
+  return regCache;
 }
+
+function isEmpty(v) {
+  return v === undefined || v === null || (typeof v === "object" && !Object.keys(v).length);
+}
+
+async function safeGetMeta(item, key) {
+  let v;
+  try { v = await item.getMetadata(key); } catch {}
+  if (!isEmpty(v)) return v;
+  const reg = await loadReg();
+  return reg[item.id]?.[key];
+}
+
 async function safeSetMeta(item, key, value) {
   try { await item.setMetadata(key, value); } catch { /* סוגי פריטים מסוימים לא תומכים */ }
+  try {
+    regCache = null;
+    const reg = await loadReg();
+    reg[item.id] = { ...(reg[item.id] || {}), [key]: value };
+    await miro.board.setAppData(REG_KEY, reg);
+    regCache = reg;
+    regTime = Date.now();
+  } catch {}
 }
 
 // מיקום מוחלט של פריט (פריטים בתוך frame נמדדים יחסית לפינת ה-frame)
@@ -91,6 +122,19 @@ export async function readSelection() {
         const m = await axisMetaOf(mat);
         if (m) { elements.set(mat.id, { mat, meta: m }); continue; }
       } catch { /* המשטח נמחק – מתייחסים לפריט כלא מסומן */ }
+    }
+
+    // גיבוי נוסף: אם הפריט בקבוצה שיש בה משטח AXIS – הוא שייך אליו
+    if (item.groupId) {
+      try {
+        const g = await miro.board.getById(item.groupId);
+        let found = null;
+        for (const other of await g.getItems()) {
+          const m = await axisMetaOf(other);
+          if (m) { found = { mat: other, meta: m }; break; }
+        }
+        if (found) { elements.set(found.mat.id, found); continue; }
+      } catch {}
     }
     loose.push(item);
   }
